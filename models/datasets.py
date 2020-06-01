@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from unet_sim.utils import simulation
+from utils import simulation
 
 
 class SimDataset(Dataset):
