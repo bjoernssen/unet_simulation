@@ -4,7 +4,7 @@ from utils import simulation
 
 class SimDataset(Dataset):
     def __init__(self, count, transform=None):
-        self.input_images, self.target_masks = simulation.generate_random_data(192, 192, count=count)
+        self.input_images, self.target_masks = simulation.generate_random_data(1200, 1200, count=count)
         self.transform = transform
 
     def __len__(self):

@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from torchvision import transforms
 from torchsummary import summary
 import torch.nn.functional as F
-
+from mlflow import log_metric, log_param, log_artifact
 
 
 def train_model(model, optimizer, scheduler, num_epochs=25):
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     inputs = inputs.to(device)
     labels = labels.to(device)
 
-    pred = model(inputs)
+    # pred = model(inputs)
     #
     pred = F.sigmoid(pred)
     pred = pred.data.cpu().numpy()
