@@ -1,7 +1,7 @@
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-from utils.loss import dice_loss
+from unet_sim.utils.loss import dice_loss
 
 
 def reverse_transform(inp):
