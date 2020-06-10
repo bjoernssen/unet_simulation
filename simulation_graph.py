@@ -11,7 +11,7 @@ if __name__ == '__main__':
     target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
     helper.plot_side_by_side([input_images_rgb, target_masks_rgb])
     plt.show()
-    n_kp = 50
+    n_kp = 100
     threshold = 35
     image = np.ascontiguousarray(input_images_rgb[0], dtype=np.uint8)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -20,5 +20,5 @@ if __name__ == '__main__':
     draw_keypoints(image, gray, kp_pos, 'output.jpg')
     # helper.plot_img_array(gray, ncol=1)
     # helper.plot_side_by_side([image, gray])
-    # plt.show()
+    plt.show()
     x = 1

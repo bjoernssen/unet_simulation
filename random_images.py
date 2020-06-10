@@ -93,7 +93,7 @@ if __name__ == '__main__':
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # imagenet
     ])
-    train_set = SimDataset(20, transform=trans)
+    train_set = SimDataset(10, transform=trans)
     val_set = SimDataset(2, transform=trans)
     image_datasets = {
         'train': train_set, 'val': val_set

@@ -1,7 +1,10 @@
 import torch.nn as nn
+import torch_sparse
 from torchvision import models
 from utils.net_functions import convrelu
 import torch
+import torch_geometric
+
 
 class ResNetUNet(nn.Module):
     def __init__(self, n_class):
