@@ -14,6 +14,7 @@ def distanceIn2D(p1, p2):
 
 def maxDistances3(point_array):
     result = np.empty([len(point_array), len(point_array)])
+    result_list = []
     for i in range(0, len(point_array)):
         first = second = third = -sys.maxsize
         for j in range(i, len(point_array)):
@@ -24,21 +25,24 @@ def maxDistances3(point_array):
                 first = dist
                 result[i, j] = dist
                 result[j, i] = dist
+                result_list.append([i,j])
 
             elif dist > second:
                 third = second
                 second = dist
                 result[i, j] = dist
                 result[j, i] = dist
+                result_list.append([i,j])
 
             elif dist > third:
                 third = dist
                 result[i, j] = dist
                 result[j, i] = dist
+                result_list.append([i,j])
 
             else:
                 result[i, j] = 0
-    return result
+    return result, result_list
 
 
 if __name__ == '__main__':
@@ -53,7 +57,7 @@ if __name__ == '__main__':
     kp_list = []
     for img in input_images:
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        kp, des = sift.detectAndCompute(gray, None)
+        kp, des = sift.detectAndCompute(img, None)
         points2f = cv.KeyPoint_convert(kp)
         img = np.ascontiguousarray(img, dtype=np.uint8)
         img = cv.drawKeypoints(gray, kp, img)

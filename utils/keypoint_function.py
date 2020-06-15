@@ -4,32 +4,32 @@ import cv2
 import numpy as np
 import math
 import random
+import sys
 
-def random_keypoints(gray_image, threshold, n_kp):
+
+def random_keypoints(gray_image, color_image=None, threshold=int, n_kp=int):
     # gray_image[gray_image < threshold] = 0
     keypoint = 0
     kp_pos = []
     kp_value = []
     kp_y = []
-    kp_mask = []
-    while keypoint < n_kp/2:
-        rand_row = randrange(gray_image.shape[0])
-        rand_col = randrange(gray_image.shape[0])
-        if gray_image[rand_row, rand_col] > threshold:
-            kp_pos.append([rand_row, rand_col])
-            kp_value.append(gray_image[rand_row, rand_col])
-            kp_y.append(1)
-            keypoint += 1
+    while keypoint < n_kp/3:
+        rand_row = random.choice(np.where(gray_image == 255)[0])
+        rand_col = random.choice(np.where(gray_image == 255)[1])
+        kp_pos.append([rand_row, rand_col])
+        kp_value.append(color_image[rand_row, rand_col])
+        kp_y.append(1)
+        keypoint += 1
     while keypoint < n_kp:
-        rand_row = randrange(gray_image.shape[0])
-        rand_col = randrange(gray_image.shape[0])
-        if gray_image[rand_row, rand_col] < threshold:
-            kp_pos.append([rand_row, rand_col])
-            kp_value.append(gray_image[rand_row, rand_col])
-            kp_y.append(0)
-            keypoint += 1
+        rand_row = random.choice(np.where(gray_image == 0)[0])
+        rand_col = random.choice(np.where(gray_image == 0)[1])
+        kp_pos.append([rand_row, rand_col])
+        kp_value.append(color_image[rand_row, rand_col])
+
+        kp_y.append(0)
+        keypoint += 1
     keypoint_pos = torch.tensor(kp_pos)
-    keypoint_val = torch.tensor(kp_value, dtype=torch.float32).view(100,1)
+    keypoint_val = torch.tensor(kp_value, dtype=torch.float32)
     y = torch.tensor(kp_y, dtype=torch.long)
     return keypoint_pos, keypoint_val, y
 
@@ -62,7 +62,7 @@ def generate_edges(kp_pos):
 
 
 def generate_random_masks(n_kp):
-    train_mask = [] 
+    train_mask = []
     test_mask = []
     val_mask = []
     for i in range(0, n_kp):
@@ -74,3 +74,41 @@ def generate_random_masks(n_kp):
     test_mask = torch.tensor(test_mask)
     val_mask = torch.tensor(val_mask)
     return train_mask, test_mask, val_mask
+
+
+def distanceIn2D(p1, p2):
+    return math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2))
+
+
+def maxDistances3(point_array):
+    edges_start = []
+    edges_end = []
+    for i in range(0, len(point_array)):
+        first = second = third = -sys.maxsize
+        first_index = second_index = third_index = 0
+        for j in range(i, len(point_array)):
+            dist = distanceIn2D(point_array[i, :], point_array[j, :])
+            if dist > first:
+                third = second
+                second = first
+                first = dist
+                third_index = second_index
+                second_index = first_index
+                first_index = j
+
+            elif dist > second:
+                third = second
+                second = dist
+                third_index = second_index
+                second_index = j
+
+            elif dist > third:
+                third = dist
+                third_index = j
+        edges_start.append(i)
+        edges_start.append(i)
+        edges_start.append(i)
+        edges_end.append(first_index)
+        edges_end.append(second_index)
+        edges_end.append(third_index)
+    return torch.tensor([edges_start, edges_end])

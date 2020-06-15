@@ -1,10 +1,24 @@
 from scipy.sparse import coo_matrix
 from torch.utils.data import Dataset
+from skimage.io import imread
+from skimage import segmentation, color
+from skimage.io import imread
+from skimage.future import graph
+from skimage.measure import regionprops
+from torch_geometric.data import InMemoryDataset
 import torch
+from os import listdir
+from os.path import isfile
 from utils import simulation, helper, keypoint_function
 import numpy as np
 import cv2
 from torch_geometric.data import Data, DataLoader
+from PIL import Image
+from math import isnan
+
+
+def rgb2gray(rgb):
+    return np.dot(rgb[..., :3], [0.2126, 0.7152, 0.0722])
 
 
 class SimDataset(Dataset):
@@ -24,6 +38,90 @@ class SimDataset(Dataset):
         return [image, mask]
 
 
+
+class TumorSet(InMemoryDataset):
+    def __init__(self, root, transform=None, pre_transform=None):
+        super(TumorSet, self).__init__(root, transform, pre_transform)
+        self.data, self.slices = torch.load(self.processed_paths[0])
+
+    @property
+    def raw_file_names(self):
+        return ['MRI-selection/' + file for file in listdir('MRI-selection/') if isfile('MRI-selection/' + file)]
+
+    @property
+    def processed_file_names(self):
+        return ['data.pt']
+
+    def download(self):
+        pass
+
+    def process(self):
+        """initialise values for image processing"""
+        data_list = []
+        n_seg = 50
+        compact = 1
+        file_names = self.raw_file_names
+        masks = ['MRI-selection-masks/' + file for file in listdir('MRI-selection-masks/')]
+        for scan, mask in zip(file_names, masks):
+            img = Image.open(scan)
+            msk = Image.open(mask)
+
+            scan_array = np.array(img)
+            mask_array = np.array(msk)
+
+            scan_segments = 1 + segmentation.slic(
+                scan_array,
+                compactness=1,
+                n_segments=100
+            )
+            g = graph.rag_mean_color(scan_array, scan_segments)
+            """Initialise values for data model construction"""
+            edges = []
+            kp_value = []
+            kp_pos = []
+            mask = []
+            """Create edges in the graph"""
+            for start in g.adj._atlas:
+                for stop in list(g.adj._atlas[start].keys()):
+                    edges.append([start, stop])
+            regions = regionprops(
+                scan_segments,
+                intensity_image=rgb2gray(scan_array)
+            )
+            """Collect kp positions and values"""
+            for props in regions:
+                cy, cx = props.weighted_centroid
+                if (isnan(cy)) or (isnan(cx)):
+                    cy, cx = props.centroid
+                kp_pos.append([cy, cx])
+                kp_value.append(scan_array[int(round(cy)), int(round(cx))])
+                mask_value = mask_array[int(round(cy)), int(round(cx))]
+                if mask_value > 0:
+                    mask.append(1)
+                else:
+                    mask.append(0)
+            """Format values to fit into the data_model"""
+            keypoint_pos = torch.tensor(kp_pos)
+            keypoint_val = torch.tensor(kp_value, dtype=torch.float32)
+            y = torch.tensor(mask, dtype=torch.long)
+            train_mask, test_mask, val_mask = keypoint_function.generate_random_masks(
+                len(mask)
+            )
+            """Create data object from image data"""
+            data = Data(
+                x=keypoint_val,
+                edge_index=edges,
+                pos=keypoint_pos,
+                y=y,
+                train_mask=train_mask,
+                test_mask=test_mask,
+                val_mask=val_mask
+            )
+            data_list.append(data)
+        data, slices = self.collate(data_list)
+        torch.save((data, slices), self.processed_paths[0])
+
+
 def create_simulation_graph_set(n_kp, thresh, n_elem):
     input_images, target_masks = simulation.generate_random_data(192, 192, count=n_elem)
     input_images_rgb = [x.astype(np.uint8) for x in input_images]
@@ -40,6 +138,155 @@ def create_simulation_graph_set(n_kp, thresh, n_elem):
             x=kp_val,
             edge_index=edges,
             pos=kp_pos,
+            y=y,
+            train_mask=train_mask,
+            test_mask=test_mask,
+            val_mask=val_mask
+        )
+        data_list.append(data)
+    return data_list
+
+
+def create_tumor_set():
+    directory_file = 'MRI-selection/raw/'
+    directory_mask = 'MRI-selection-masks/'
+    data_list = []
+
+    for scan, mask in zip(listdir(directory_file), listdir(directory_mask)):
+        img = Image.open(directory_file + scan)
+        msk = Image.open(directory_mask + mask)
+
+        scan_array = np.array(img)
+        mask_array = np.array(msk)
+
+        scan_segments = 1 + segmentation.slic(scan_array, compactness=1, n_segments=500)
+        g = graph.rag_mean_color(scan_array, scan_segments)
+        edges = []
+        kp_value = []
+        kp_pos = []
+        mask = []
+
+        for start in g.adj._atlas:
+            for stop in list(g.adj._atlas[start].keys()):
+                edges.append([start, stop])
+
+        regions = regionprops(scan_segments, intensity_image=rgb2gray(scan_array))
+        for props in regions:
+            cy, cx = props.weighted_centroid
+            if (isnan(cy)) or (isnan(cx)):
+                cy, cx = props.centroid
+            kp_pos.append([cy, cx])
+            kp_value.append(scan_array[int(round(cy)), int(round(cx))])
+            mask_value = mask_array[int(round(cy)), int(round(cx))]
+            if mask_value > 0:
+                mask.append(1)
+            else:
+                mask.append(0)
+        keypoint_pos = torch.tensor(kp_pos)
+        keypoint_val = torch.tensor(kp_value, dtype=torch.float32)
+        y = torch.tensor(mask, dtype=torch.long)
+        train_mask, test_mask, val_mask = keypoint_function.generate_random_masks(len(mask))
+
+        data = Data(
+            x=keypoint_val,
+            edge_index=edges,
+            pos=keypoint_pos,
+            y=y,
+            train_mask=train_mask,
+            test_mask=test_mask,
+            val_mask=val_mask
+        )
+        data_list.append(data)
+    return data_list
+
+
+def create_sift_tumor_set():
+    sift = cv2.xfeatures2d.SIFT_create(1000)
+    directory_file = 'MRI-selection/raw/'
+    directory_mask = 'MRI-selection-masks/'
+    data_list = []
+    data_alternativ = []
+
+    for scan, mask in zip(listdir(directory_file), listdir(directory_mask)):
+        kp_pos = []
+        kp_val = []
+        mask_list = []
+
+        img = Image.open(directory_file + scan)
+        msk = Image.open(directory_mask + mask)
+
+        scan_array = np.array(img)
+        mask_array = np.array(msk)
+
+        kp, des = sift.detectAndCompute(scan_array, None)
+        if len(kp) > 80:
+            del kp[79:len(kp)-1]
+        key_pos = cv2.KeyPoint_convert(kp)
+
+        for key in key_pos:
+            kp_val.append(
+                scan_array[
+                    int(round(key[0])),
+                    int(round(key[1]))
+                ]
+            )
+            mask_value = mask_array[
+                int(round(key[0])),
+                int(round(key[1]))
+            ]
+            if mask_value > 0:
+                mask_list.append(1)
+            else:
+                mask_list.append(0)
+
+        keypoint_pos = torch.tensor(key_pos)
+        keypoint_val = torch.tensor(kp_val, dtype=torch.float32)
+        y = torch.tensor(mask_list, dtype=torch.long)
+        edge_list = keypoint_function.maxDistances3(key_pos)
+
+        train_mask, test_mask, val_mask = keypoint_function.generate_random_masks(len(keypoint_pos))
+        data = Data(
+            x=keypoint_val,
+            edge_index=edge_list,
+            pos=keypoint_pos,
+            y=y,
+            train_mask=train_mask,
+            test_mask=test_mask,
+            val_mask=val_mask
+        )
+        data_list.append(data)
+        if len(keypoint_pos) == 80:
+            data_alternativ.append(data)
+    return data_list, data_alternativ
+
+
+def random_pixel_tumor_set():
+    directory_file = 'MRI-selection/raw/'
+    directory_mask = 'MRI-selection-masks/'
+    data_list = []
+    for scan in listdir(directory_file):
+        mask = scan.replace('.tif', '_mask.tif')
+        kp_pos = []
+        kp_val = []
+        mask_list = []
+
+        img = Image.open(directory_file + scan)
+        msk = Image.open(directory_mask + mask)
+
+        scan_array = np.array(img)
+        mask_array = np.array(msk)
+        keypoint_pos, keypoint_val, y = keypoint_function.random_keypoints(
+            mask_array,
+            color_image=scan_array,
+            threshold=0,
+            n_kp=200
+        )
+        edge_list = keypoint_function.maxDistances3(keypoint_pos)
+        train_mask, test_mask, val_mask = keypoint_function.generate_random_masks(len(keypoint_pos))
+        data = Data(
+            x=keypoint_val,
+            edge_index=edge_list,
+            pos=keypoint_pos,
             y=y,
             train_mask=train_mask,
             test_mask=test_mask,
