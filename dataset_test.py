@@ -1,4 +1,5 @@
 import os.path as osp
+import random
 
 from sklearn.metrics import f1_score
 
@@ -55,14 +56,16 @@ if __name__ == '__main__':
     # dataset = create_tumor_set()
     # dataset1, dataset_alt = create_sift_tumor_set()
     dataset2 = random_pixel_tumor_set()
-
+    train_data = dataset2[0:150]
+    test_data = dataset2[151:200]
+    dataset_shuffled = random.shuffle(dataset2)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = Net().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
 
     best_val_acc = test_acc = 0
 
-    for epoch in range(1, 300):
+    for epoch in range(1, 301):
         for data in dataset2:
             train()
         train_acc, val_acc, tmp_test_acc = test()

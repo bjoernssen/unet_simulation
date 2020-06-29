@@ -38,7 +38,6 @@ class SimDataset(Dataset):
         return [image, mask]
 
 
-
 class TumorSet(InMemoryDataset):
     def __init__(self, root, transform=None, pre_transform=None):
         super(TumorSet, self).__init__(root, transform, pre_transform)
@@ -202,12 +201,15 @@ def create_tumor_set():
 
 def create_sift_tumor_set():
     sift = cv2.xfeatures2d.SIFT_create(1000)
-    directory_file = 'MRI-selection/raw/'
-    directory_mask = 'MRI-selection-masks/'
+    directory_file = 'Tumor_MRI/Image/'
+    directory_mask = 'Tumor_MRI/Mask/'
     data_list = []
     data_alternativ = []
+    dataset_size = 200
+    i = 0
 
-    for scan, mask in zip(listdir(directory_file), listdir(directory_mask)):
+    for scan in listdir(directory_file):
+        mask = scan.replace('.tif', '_mask.tif')
         kp_pos = []
         kp_val = []
         mask_list = []
@@ -255,23 +257,31 @@ def create_sift_tumor_set():
             val_mask=val_mask
         )
         data_list.append(data)
-        if len(keypoint_pos) == 80:
-            data_alternativ.append(data)
+        if i < dataset_size:
+            if len(keypoint_pos) == 80:
+                data_alternativ.append(data)
+                i += 1
     return data_list, data_alternativ
 
 
 def random_pixel_tumor_set():
-    directory_file = 'MRI-selection/raw/'
-    directory_mask = 'MRI-selection-masks/'
+    tumor_directory = 'Tumor_MRI/Yes/Image/'
+    tumor_mask_directory = 'Tumor_MRI/Yes/Mask/'
+    no_tumor_directory = 'Tumor_MRI/No/Image/'
+    no_tumor_mask_directory = 'Tumor_MRI/No/Mask/'
+
+    dataset_size = 200
+    i = 0
     data_list = []
-    for scan in listdir(directory_file):
+
+    for scan in listdir(tumor_directory):
         mask = scan.replace('.tif', '_mask.tif')
         kp_pos = []
         kp_val = []
         mask_list = []
 
-        img = Image.open(directory_file + scan)
-        msk = Image.open(directory_mask + mask)
+        img = Image.open(tumor_directory + scan)
+        msk = Image.open(tumor_mask_directory + mask)
 
         scan_array = np.array(img)
         mask_array = np.array(msk)
@@ -293,4 +303,40 @@ def random_pixel_tumor_set():
             val_mask=val_mask
         )
         data_list.append(data)
+        i += 1
+        if i > dataset_size/2:
+            break
+
+    for scan in listdir(tumor_directory):
+        mask = scan.replace('.tif', '_mask.tif')
+        kp_pos = []
+        kp_val = []
+        mask_list = []
+
+        img = Image.open(tumor_directory + scan)
+        msk = Image.open(tumor_mask_directory + mask)
+
+        scan_array = np.array(img)
+        mask_array = np.array(msk)
+        keypoint_pos, keypoint_val, y = keypoint_function.random_keypoints(
+            mask_array,
+            color_image=scan_array,
+            threshold=0,
+            n_kp=200
+        )
+        edge_list = keypoint_function.maxDistances3(keypoint_pos)
+        train_mask, test_mask, val_mask = keypoint_function.generate_random_masks(len(keypoint_pos))
+        data = Data(
+            x=keypoint_val,
+            edge_index=edge_list,
+            pos=keypoint_pos,
+            y=y,
+            train_mask=train_mask,
+            test_mask=test_mask,
+            val_mask=val_mask
+        )
+        data_list.append(data)
+        i += 1
+        if i > dataset_size:
+            break
     return data_list

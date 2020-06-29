@@ -13,13 +13,14 @@ def random_keypoints(gray_image, color_image=None, threshold=int, n_kp=int):
     kp_pos = []
     kp_value = []
     kp_y = []
-    while keypoint < n_kp/3:
-        rand_row = random.choice(np.where(gray_image == 255)[0])
-        rand_col = random.choice(np.where(gray_image == 255)[1])
-        kp_pos.append([rand_row, rand_col])
-        kp_value.append(color_image[rand_row, rand_col])
-        kp_y.append(1)
-        keypoint += 1
+    if gray_image.max() > 0:
+        while keypoint < n_kp/3:
+            rand_row = random.choice(np.where(gray_image == 255)[0])
+            rand_col = random.choice(np.where(gray_image == 255)[1])
+            kp_pos.append([rand_row, rand_col])
+            kp_value.append(color_image[rand_row, rand_col])
+            kp_y.append(1)
+            keypoint += 1
     while keypoint < n_kp:
         rand_row = random.choice(np.where(gray_image == 0)[0])
         rand_col = random.choice(np.where(gray_image == 0)[1])
