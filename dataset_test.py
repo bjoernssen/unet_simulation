@@ -56,8 +56,8 @@ if __name__ == '__main__':
     # dataset = create_tumor_set()
     # dataset1, dataset_alt = create_sift_tumor_set()
     dataset2 = random_pixel_tumor_set()
-    train_data = dataset2[0:150]
-    test_data = dataset2[151:200]
+    train_data = dataset2[:15]
+    test_data = dataset2[15:]
     dataset_shuffled = random.shuffle(dataset2)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = Net().to(device)

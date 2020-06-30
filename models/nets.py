@@ -1,11 +1,14 @@
 import torch.nn as nn
 import torch_sparse
+from torch_geometric.utils import dropout_adj
 from torchvision import models
 from torch.nn import Conv2d
 import torch.nn.functional as F
 from utils.net_functions import convrelu
 import torch
 import torch_geometric
+from torch_geometric.nn import GraphUNet
+
 
 
 class ConvolutionBlock(nn.Module):
@@ -223,3 +226,25 @@ class UnetTumor(nn.Module):
         out = self.conv(up1)
 
         return out
+
+
+class GUNET(torch.nn.Module):
+    def __init__(self, in_ch, hid_ch, out_ch, depth, pool_ratios):
+        super(GUNET, self).__init__()
+        self.unet = GraphUNet(
+            in_channels=in_ch,
+            hidden_channels=hid_ch,
+            out_channels=out_ch,
+            depth=depth,
+            pool_ratios=pool_ratios
+        )
+
+    def forward(self, data):
+        edge_index, _ = dropout_adj(data.edge_index, p=0.2,
+                                    force_undirected=True,
+                                    num_nodes=data.num_nodes,
+                                    training=self.training)
+        x = F.dropout(data.x, p=0.92, training=self.training)
+
+        x = self.unet(x, edge_index)
+        return F.log_softmax(x, dim=1)

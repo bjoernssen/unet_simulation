@@ -52,9 +52,8 @@ if __name__ == '__main__':
     helper.plot_side_by_side([input_images_rgb, target_masks_rgb])
     plt.show()
 
-    sift = cv.xfeatures2d.SIFT_create(10)
+    sift = cv.xfeatures2d.SIFT_create(100)
     i = 0
-    kp_list = []
     for img in input_images:
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
         kp, des = sift.detectAndCompute(img, None)
@@ -63,6 +62,5 @@ if __name__ == '__main__':
         img = cv.drawKeypoints(gray, kp, img)
         filename = 'sift_keypoints' + str(i) + '.jpg'
         cv.imwrite(filename, img)
-        kp_list.append(len(kp))
-        kp_distance = maxDistances3(points2f)
+
         i = i + 1

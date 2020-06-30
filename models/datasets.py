@@ -129,7 +129,7 @@ def create_simulation_graph_set(n_kp, thresh, n_elem):
     for i in range(0, n_elem):
         image = np.ascontiguousarray(input_images_rgb[i], dtype=np.uint8)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        kp_pos, kp_val, y = keypoint_function.random_keypoints(gray, thresh, n_kp)
+        kp_pos, kp_val, y = keypoint_function.random_keypoints(gray, color_image=image, threshold=thresh, n_kp=n_kp)
         edges = keypoint_function.generate_edges(kp_pos)
         train_mask, test_mask, val_mask = keypoint_function.generate_random_masks(n_kp)
         # edges_coo = coo_matrix(edges)
@@ -270,7 +270,7 @@ def random_pixel_tumor_set():
     no_tumor_directory = 'Tumor_MRI/No/Image/'
     no_tumor_mask_directory = 'Tumor_MRI/No/Mask/'
 
-    dataset_size = 200
+    dataset_size = 35
     i = 0
     data_list = []
 

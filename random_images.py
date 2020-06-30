@@ -98,7 +98,7 @@ if __name__ == '__main__':
     image_datasets = {
         'train': train_set, 'val': val_set
     }
-    batch_size = 25
+    batch_size = 1
     dataloaders = {
         'train': DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=0),
         'val': DataLoader(val_set, batch_size=batch_size, shuffle=True, num_workers=0)
@@ -107,8 +107,8 @@ if __name__ == '__main__':
 
     print(inputs.shape, masks.shape)
 
-    plt.imshow(reverse_transform(inputs[3]))
-    plt.show()
+    # plt.imshow(reverse_transform(inputs[3]))
+    # plt.show()
 
     """Define model and devices to be used"""
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -143,6 +143,8 @@ if __name__ == '__main__':
     pred = F.sigmoid(pred)
     pred = pred.data.cpu().numpy()
     print(pred.shape)
+
+    model.save_state_dict('unet_sim.pt')
 
     input_images_rgb = [reverse_transform(x) for x in inputs.cpu()]
 
