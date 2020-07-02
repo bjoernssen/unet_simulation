@@ -7,7 +7,7 @@ import random
 import sys
 
 
-def random_sim_kp(gray_image, thresh, n_kp):
+def random_sim_kp(gray_image, msk, thresh, n_kp):
     keypoint = 0
     kp_pos = []
     kp_value = []
@@ -19,7 +19,12 @@ def random_sim_kp(gray_image, thresh, n_kp):
             continue
         kp_pos.append([rand_row, rand_col])
         kp_value.append(gray_image[rand_row, rand_col])
-        kp_y.append(1)
+        for channel in range(6):
+            if msk[channel, rand_row, rand_col] == 1:
+                kp_y.append(channel+1)
+                break
+            elif channel == 5:
+                kp_y.append(0)
         keypoint += 1
     keypoint_pos = torch.tensor(kp_pos)
     keypoint_val = torch.tensor(kp_value, dtype=torch.float32).view(n_kp, 1)
