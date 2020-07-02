@@ -7,6 +7,26 @@ import random
 import sys
 
 
+def random_sim_kp(gray_image, thresh, n_kp):
+    keypoint = 0
+    kp_pos = []
+    kp_value = []
+    kp_y = []
+    while keypoint < n_kp:
+        rand_row = random.choice(np.where(gray_image > thresh)[0])
+        rand_col = random.choice(np.where(gray_image > thresh)[1])
+        if gray_image[rand_row, rand_col] < thresh:
+            continue
+        kp_pos.append([rand_row, rand_col])
+        kp_value.append(gray_image[rand_row, rand_col])
+        kp_y.append(1)
+        keypoint += 1
+    keypoint_pos = torch.tensor(kp_pos)
+    keypoint_val = torch.tensor(kp_value, dtype=torch.float32)
+    y = torch.tensor(kp_y, dtype=torch.long)
+    return keypoint_pos, keypoint_val, y
+
+
 def random_keypoints(gray_image, color_image=None, threshold=int, n_kp=int):
     # gray_image[gray_image < threshold] = 0
     keypoint = 0
