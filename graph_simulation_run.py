@@ -46,7 +46,7 @@ if __name__ == '__main__':
     for deep in depths:
         for hidden in hidden_channels:
             model = GUNET(
-                in_ch=3,
+                in_ch=1,
                 hid_ch=hidden,
                 out_ch=6,
                 pool_ratios=pooling_ratios
