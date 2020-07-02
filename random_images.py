@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from torchvision import transforms
 from torchsummary import summary
 import torch.nn.functional as F
-from mlflow import log_metric, log_param, log_artifact
+from mlflow import log_metric, log_param, log_artifact, start_run
 
 
 def train_model(model, optimizer, scheduler, num_epochs=25):

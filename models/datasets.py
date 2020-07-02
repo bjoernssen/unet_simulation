@@ -1,3 +1,5 @@
+import random
+
 from scipy.sparse import coo_matrix
 from torch.utils.data import Dataset
 from skimage.io import imread
@@ -15,6 +17,7 @@ import cv2
 from torch_geometric.data import Data, DataLoader
 from PIL import Image
 from math import isnan
+import cv2 as cv
 
 
 def rgb2gray(rgb):
@@ -339,4 +342,42 @@ def random_pixel_tumor_set():
         i += 1
         if i > dataset_size:
             break
+    return data_list
+
+
+def create_sift_sim_set(n_kp, n_elem):
+    input_images, target_masks = simulation.generate_random_data(192, 192, count=n_elem)
+    input_images_rgb = [x.astype(np.uint8) for x in input_images]
+    target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
+    sift = cv.xfeatures2d.SIFT_create(n_kp)
+    data_list = []
+    for img, i in zip(input_images_rgb, range(target_masks.shape[0])):
+        msk = target_masks[i,:,:,:]
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        kp_values = []
+        kp_y = []
+        kp, des = sift.detectAndCompute(img, None)
+        if len(kp) < 25:
+            continue
+        kp_sampled = random.choices(kp, k=25)
+        points2f = cv.KeyPoint_convert(kp_sampled)
+        distances, edges = keypoint_function.maxDistances3(points2f)
+        channel_list = []
+        for keypoint in points2f:
+            kp_values.append(
+                gray[int(keypoint[0]), int(keypoint[1])]
+            )
+            for channel in range(6):
+                if msk[channel, int(keypoint[0]), int(keypoint[1])] == 1:
+                    kp_y.append(channel+1)
+                    break
+                elif channel == 5:
+                    kp_y.append(0)
+        data = Data(
+            x=kp_values,
+            edge_index=edges,
+            pos=points2f,
+            y=kp_y,
+        )
+        data_list.append(data)
     return data_list

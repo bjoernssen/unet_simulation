@@ -133,3 +133,41 @@ def maxDistances3(point_array):
         edges_end.append(second_index)
         edges_end.append(third_index)
     return torch.tensor([edges_start, edges_end])
+
+
+
+def distanceIn2D(p1, p2):
+    return math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2))
+
+
+def maxDistances3(point_array):
+    result = np.empty([len(point_array), len(point_array)])
+    result_list = []
+    for i in range(0, len(point_array)):
+        first = second = third = -sys.maxsize
+        for j in range(i, len(point_array)):
+            dist = distanceIn2D(point_array[i, :], point_array[j, :])
+            if dist > first:
+                third = second
+                second = first
+                first = dist
+                result[i, j] = dist
+                result[j, i] = dist
+                result_list.append([i,j])
+
+            elif dist > second:
+                third = second
+                second = dist
+                result[i, j] = dist
+                result[j, i] = dist
+                result_list.append([i,j])
+
+            elif dist > third:
+                third = dist
+                result[i, j] = dist
+                result[j, i] = dist
+                result_list.append([i,j])
+
+            else:
+                result[i, j] = 0
+    return result, result_list
