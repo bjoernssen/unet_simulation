@@ -127,7 +127,7 @@ class TumorSet(InMemoryDataset):
 def create_simulation_graph_set(n_kp, thresh, n_elem):
     input_images, target_masks = simulation.generate_random_data(192, 192, count=n_elem)
     input_images_rgb = [x.astype(np.uint8) for x in input_images]
-    target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
+    # target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
     data_list = []
     for i in range(0, n_elem):
         image = np.ascontiguousarray(input_images_rgb[i], dtype=np.uint8)
