@@ -16,7 +16,7 @@ if __name__ == '__main__':
     epochs = 30
     loss = nn.NLLLoss()
     tumor_directory = 'kaggle3m/'
-    train_n = 2000
+    train_n = 20
     test_n = 20
     n_kp = 200
     threshold = 15
@@ -47,7 +47,8 @@ if __name__ == '__main__':
         for hidden in hidden_channels:
             model = GUNET(
                 in_ch=1,
-                hid_ch=hidden,
+                hid_ch=2000,
+                depth=deep,
                 out_ch=6,
                 pool_ratios=pooling_ratios
             ).to(device)
@@ -58,6 +59,7 @@ if __name__ == '__main__':
                 log_param('hidden_channel', hidden)
                 log_param('pooling_ratios', pooling_ratios)
                 log_param('learning_rate', lr)
+                log_param('depth', deep)
                 for epoch in range(epochs):
                     train_loss = []
                     val_loss = []

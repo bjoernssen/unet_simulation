@@ -22,7 +22,7 @@ def random_sim_kp(gray_image, thresh, n_kp):
         kp_y.append(1)
         keypoint += 1
     keypoint_pos = torch.tensor(kp_pos)
-    keypoint_val = torch.tensor(kp_value, dtype=torch.float32)
+    keypoint_val = torch.tensor(kp_value, dtype=torch.float32).view(n_kp, 1)
     y = torch.tensor(kp_y, dtype=torch.long)
     return keypoint_pos, keypoint_val, y
 
