@@ -19,12 +19,10 @@ if __name__ == '__main__':
     tumor_set = []
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = UnetTumor((3, 256, 256)).to(device)
-    torch.save(model, 'tumor_unet.pth')
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     epochs = 30
     train_loss = []
     val_loss = []
-
 
     for patient in listdir(tumor_directory):
         for image_file in listdir(tumor_directory + patient):
