@@ -73,8 +73,8 @@ if __name__ == '__main__':
                         out = loss(model(data), data.y)
                         out.backward()
                         optimizer.step()
-                        los = 1-float(model(data).max(1)[1].eq(data.y).sum().item()) / data.num_nodes
-                        running_train_los.append(los)
+                        acc = float(model(data).max(1)[1].eq(data.y).sum().item()) / data.num_nodes
+                        running_train_los.append(acc)
                     else:
                         running_val_los = []
                         with torch.no_grad():
@@ -83,16 +83,16 @@ if __name__ == '__main__':
                                 data = data.to(device)
                                 pred = model(data).max(1)[1]
                                 correct = float(pred.eq(data.y).sum().item())
-                                los = 1 - (correct / data.num_nodes)
-                                running_val_los.append(los)
+                                acc = (correct / data.num_nodes)
+                                running_val_los.append(acc)
 
                     epoch_train_acc = np.mean(running_train_los)
-                    print('Train acc: {}'.format(epoch_train_acc))
+                    print('Train loss: {}'.format(epoch_train_acc))
                     train_loss.append(epoch_train_acc)
                     log_metric('train_loss', epoch_train_acc)
 
                     epoch_val_acc = np.mean(running_val_los)
-                    print('Train acc: {}'.format(epoch_val_acc))
+                    print('test loss: {}'.format(epoch_val_acc))
                     val_loss.append(epoch_val_acc)
                     log_metric('test_loss', epoch_val_acc)
 

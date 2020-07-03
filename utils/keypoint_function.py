@@ -12,6 +12,13 @@ def random_sim_kp(gray_image, msk, thresh, n_kp):
     kp_pos = []
     kp_value = []
     kp_y = []
+    while keypoint < n_kp/4:
+        rand_row = random.choice(np.where(gray_image == 0)[0])
+        rand_col = random.choice(np.where(gray_image == 0)[1])
+        kp_pos.append([rand_row, rand_col])
+        kp_value.append(gray_image[rand_row, rand_col])
+        kp_y.append(0)
+        keypoint += 1
     while keypoint < n_kp:
         rand_row = random.choice(np.where(gray_image > thresh)[0])
         rand_col = random.choice(np.where(gray_image > thresh)[1])
