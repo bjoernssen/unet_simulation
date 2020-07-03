@@ -46,7 +46,7 @@ def random_keypoints(gray_image, color_image=None, threshold=int, n_kp=int):
     kp_value = []
     kp_y = []
     if gray_image.max() > 0:
-        while keypoint < n_kp*0.3:
+        while keypoint < n_kp*0.5:
             rand_row = random.choice(np.where(gray_image == 255)[0])
             rand_col = random.choice(np.where(gray_image == 255)[1])
             kp_pos.append([rand_row, rand_col])

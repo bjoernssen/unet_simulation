@@ -55,7 +55,7 @@ if __name__ == '__main__':
                 in_ch=3,
                 hid_ch=400,
                 depth=deep,
-                out_ch=7,
+                out_ch=2,
                 pool_ratios=pooling_ratios
             ).to(device)
             optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=0.001)
