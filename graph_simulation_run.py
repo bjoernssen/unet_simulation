@@ -5,7 +5,7 @@ from torch_geometric.data import DataLoader
 import numpy as np
 import torch.nn as nn
 
-from models.datasets import create_simulation_graph_set, create_sift_sim_set
+from models.datasets import create_simulation_graph_set, create_sift_sim_set, create_binary_sim_set
 from models.nets import GUNET
 from mlflow import log_param, log_metric, log_artifact, start_run
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     loss = nn.NLLLoss()
     tumor_directory = 'kaggle3m/'
     train_n = 20
-    test_n = 20
+    test_n = 2
     n_kp = 200
     threshold = 15
 
@@ -29,11 +29,17 @@ if __name__ == '__main__':
     pooling_ratios = [0.5, 0.5]
 
     """Building the data set"""
-    rand_train = create_simulation_graph_set(n_kp=n_kp, thresh=15, n_elem=train_n)
-    rand_test = create_simulation_graph_set(n_kp=n_kp, thresh=15, n_elem=test_n)
+    # rand_train = create_simulation_graph_set(n_kp=n_kp, thresh=15, n_elem=train_n)
+    # rand_test = create_simulation_graph_set(n_kp=n_kp, thresh=15, n_elem=test_n)
+    #
+    # rand_train_loader = DataLoader(rand_train, batch_size=10, shuffle=True)
+    # rand_test_loader = DataLoader(rand_test, batch_size=10, shuffle=True)
 
-    rand_train_loader = DataLoader(rand_train, batch_size=10, shuffle=True)
-    rand_test_loader = DataLoader(rand_test, batch_size=10, shuffle=True)
+    rand_bin_train = create_binary_sim_set(n_kp=n_kp, thresh=10, n_elem=train_n)
+    rand_bin_test = create_binary_sim_set(n_kp=n_kp, thresh=10, n_elem=test_n)
+
+    rand_bin_train_loader = DataLoader(rand_bin_train, batch_size=2, shuffle=True)
+    rand_bin_test_loader = DataLoader(rand_bin_test, batch_size=2, shuffle=True)
 
     # sift_train = create_sift_sim_set(800, train_n)
     # sift_test = create_sift_sim_set(800, test_n)
@@ -46,8 +52,8 @@ if __name__ == '__main__':
     for deep in depths:
         for hidden in hidden_channels:
             model = GUNET(
-                in_ch=1,
-                hid_ch=2000,
+                in_ch=3,
+                hid_ch=400,
                 depth=deep,
                 out_ch=7,
                 pool_ratios=pooling_ratios
@@ -66,7 +72,7 @@ if __name__ == '__main__':
                     running_train_los = []
                     start_time = time.time()
 
-                    for data in rand_train_loader:
+                    for data in rand_bin_train_loader:
                         data = data.to(device)
                         model.train()
                         optimizer.zero_grad()
@@ -78,7 +84,7 @@ if __name__ == '__main__':
                     else:
                         running_val_los = []
                         with torch.no_grad():
-                            for data in rand_test_loader:
+                            for data in rand_bin_test_loader:
                                 model.eval()
                                 data = data.to(device)
                                 pred = model(data).max(1)[1]

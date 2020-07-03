@@ -19,6 +19,8 @@ from PIL import Image
 from math import isnan
 import cv2 as cv
 
+from utils.keypoint_function import random_keypoints
+
 
 def rgb2gray(rgb):
     return np.dot(rgb[..., :3], [0.2126, 0.7152, 0.0722])
@@ -123,6 +125,26 @@ class TumorSet(InMemoryDataset):
         data, slices = self.collate(data_list)
         torch.save((data, slices), self.processed_paths[0])
 
+
+def create_binary_sim_set(n_kp, thresh, n_elem):
+    input_images, target_masks = simulation.generate_random_data(192, 192, count=n_elem)
+    input_images_rgb = [x.astype(np.uint8) for x in input_images]
+    # target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
+    data_list = []
+    for i in range(n_elem):
+        image = np.ascontiguousarray(input_images_rgb[i], dtype=np.uint8)
+        msk = target_masks[i,:,:,:]
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        keypoint_pos, keypoint_val, y = random_keypoints(gray,image,thresh,n_kp)
+        edges = keypoint_function.generate_edges(keypoint_pos)
+        data = Data(
+            x=keypoint_val,
+            edge_index=edges,
+            pos=keypoint_pos,
+            y=y
+        )
+        data_list.append(data)
+    return data_list
 
 def create_simulation_graph_set(n_kp, thresh, n_elem):
     input_images, target_masks = simulation.generate_random_data(192, 192, count=n_elem)
