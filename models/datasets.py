@@ -17,7 +17,7 @@ import cv2
 from torch_geometric.data import Data, DataLoader
 from PIL import Image
 from math import isnan
-import cv2 as cv
+import cv2
 
 from utils.keypoint_function import random_keypoints
 
@@ -373,18 +373,18 @@ def create_sift_sim_set(n_kp, n_elem):
     input_images, target_masks = simulation.generate_random_data(192, 192, count=n_elem)
     input_images_rgb = [x.astype(np.uint8) for x in input_images]
     target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
-    sift = cv.xfeatures2d.SIFT_create(n_kp)
+    sift = cv2.xfeatures2d.SIFT_create(n_kp)
     data_list = []
     for img, i in zip(input_images_rgb, range(target_masks.shape[0])):
         msk = target_masks[i,:,:,:]
-        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         kp_values = []
         kp_y = []
         kp, des = sift.detectAndCompute(img, None)
         if len(kp) < 25:
             continue
         kp_sampled = random.choices(kp, k=25)
-        points2f = cv.KeyPoint_convert(kp_sampled)
+        points2f = cv2.KeyPoint_convert(kp_sampled)
         distances, edges = keypoint_function.maxDistances3(points2f)
         channel_list = []
         for keypoint in points2f:
@@ -404,6 +404,56 @@ def create_sift_sim_set(n_kp, n_elem):
             edge_index=kp_edges,
             pos=points2f,
             y=y,
+        )
+        data_list.append(data)
+    return data_list
+
+
+def create_knn_sim_set(n_kp, n_elem):
+    input_images, target_masks = simulation.generate_random_data(192, 192, count=n_elem)
+    input_images_rgb = [x.astype(np.uint8) for x in input_images]
+    target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
+    data_list = []
+    for img, mask in zip(input_images_rgb, target_masks_rgb):
+        scan_segments = 1 + segmentation.slic(img, compactness=1, n_segments=n_kp)
+        g = graph.rag_mean_color(img, scan_segments)
+        gray_mask = rgb2gray(mask)
+        edges = []
+        for start in g.adj._atlas:
+            if start > 1379:
+                break
+            for stop in list(g.adj._atlas[start].keys()):
+                if stop > 1379:
+                    continue
+                edges.append([start, stop])
+        kp_value = []
+        kp_pos = []
+        y = []
+        regions = regionprops(scan_segments, intensity_image=rgb2gray(img))
+        for props in regions:
+            cy, cx = props.weighted_centroid
+            if (isnan(cy)) or (isnan(cx)):
+                cy, cx = props.centroid
+            kp_pos.append([cy, cx])
+            kp_value.append(rgb2gray(img)[int(round(cy)), int(round(cx))])
+            mask_value = gray_mask[int(round(cy)), int(round(cx))]
+            if mask_value > 0:
+                y.append(1)
+            else:
+                y.append(0)
+            if len(y) == 1380:
+                break
+        if len(y) < 1380:
+            continue
+        keypoint_pos = torch.tensor(kp_pos)
+        keypoint_val = torch.tensor(kp_value, dtype=torch.float32).view(1380, 1)
+        kp_edges = torch.tensor(edges).view(2, len(edges))
+        y = torch.tensor(y, dtype=torch.long)
+        data = Data(
+            x=keypoint_val,
+            edge_index=kp_edges,
+            pos=keypoint_pos,
+            y=y
         )
         data_list.append(data)
     return data_list

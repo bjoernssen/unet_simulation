@@ -5,7 +5,7 @@ from torch_geometric.data import DataLoader
 import numpy as np
 import torch.nn as nn
 
-from models.datasets import create_simulation_graph_set, create_sift_sim_set, create_binary_sim_set
+from models.datasets import create_knn_sim_set, create_simulation_graph_set, create_sift_sim_set, create_binary_sim_set
 from models.nets import GUNET
 from mlflow import log_param, log_metric, log_artifact, start_run
 
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     epochs = 30
     loss = nn.NLLLoss()
     tumor_directory = 'kaggle3m/'
-    train_n = 20
+    train_n = 2
     test_n = 2
     n_kp = 200
     threshold = 15
@@ -41,11 +41,11 @@ if __name__ == '__main__':
     # rand_bin_train_loader = DataLoader(rand_bin_train, batch_size=2, shuffle=True)
     # rand_bin_test_loader = DataLoader(rand_bin_test, batch_size=2, shuffle=True)
 
-    sift_train = create_sift_sim_set(800, train_n)
-    sift_test = create_sift_sim_set(800, test_n)
+    sift_train = create_knn_sim_set(1500, train_n)
+    sift_test = create_knn_sim_set(1500, test_n)
 
-    sift_train_loader = DataLoader(sift_train, batch_size=10, shuffle=True)
-    sift_test_loader = DataLoader(sift_test, batch_size=10, shuffle=True)
+    sift_train_loader = DataLoader(sift_train, batch_size=2, shuffle=True)
+    sift_test_loader = DataLoader(sift_test, batch_size=2, shuffle=True)
 
     lr = 1e-3
     """Generate models from parameters"""
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         for hidden in hidden_channels:
             model = GUNET(
                 in_ch=1,
-                hid_ch=250,
+                hid_ch=2760,
                 depth=deep,
                 out_ch=2,
                 pool_ratios=pooling_ratios
