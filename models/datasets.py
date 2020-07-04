@@ -133,9 +133,9 @@ def create_binary_sim_set(n_kp, thresh, n_elem):
     data_list = []
     for i in range(n_elem):
         image = np.ascontiguousarray(input_images_rgb[i], dtype=np.uint8)
-        msk = target_masks[i,:,:,:]
+        msk = target_masks[i, :, :, :]
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        keypoint_pos, keypoint_val, y = random_keypoints(gray,image,thresh,n_kp)
+        keypoint_pos, keypoint_val, y = random_keypoints(gray, image, thresh, n_kp)
         edges = keypoint_function.generate_edges(keypoint_pos)
         data = Data(
             x=keypoint_val,
@@ -154,7 +154,7 @@ def create_simulation_graph_set(n_kp, thresh, n_elem):
     data_list = []
     for i in range(0, n_elem):
         image = np.ascontiguousarray(input_images_rgb[i], dtype=np.uint8)
-        msk = target_masks[i,:,:,:]
+        msk = target_masks[i, :, :, :]
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         kp_pos, kp_val, y = keypoint_function.random_sim_kp(gray, msk=msk, thresh=thresh, n_kp=n_kp)
         edges = keypoint_function.generate_edges(kp_pos)
@@ -249,7 +249,7 @@ def create_sift_tumor_set():
 
         kp, des = sift.detectAndCompute(scan_array, None)
         if len(kp) > 80:
-            del kp[79:len(kp)-1]
+            del kp[79:len(kp) - 1]
         key_pos = cv2.KeyPoint_convert(kp)
 
         for key in key_pos:
@@ -331,7 +331,7 @@ def random_pixel_tumor_set():
         )
         data_list.append(data)
         i += 1
-        if i > dataset_size/2:
+        if i > dataset_size / 2:
             break
 
     for scan in listdir(tumor_directory):
@@ -376,7 +376,7 @@ def create_sift_sim_set(n_kp, n_elem):
     sift = cv2.xfeatures2d.SIFT_create(n_kp)
     data_list = []
     for img, i in zip(input_images_rgb, range(target_masks.shape[0])):
-        msk = target_masks[i,:,:,:]
+        msk = target_masks[i, :, :, :]
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         kp_values = []
         kp_y = []
@@ -395,7 +395,7 @@ def create_sift_sim_set(n_kp, n_elem):
                 kp_y.append(1)
             else:
                 kp_y.append(0)
-        key_values = torch.tensor(kp_values, dtype=torch.float32).view(25,1)
+        key_values = torch.tensor(kp_values, dtype=torch.float32).view(25, 1)
         kp_pos = torch.tensor(points2f)
         kp_edges = torch.tensor(edges).view(2, len(edges))
         y = torch.tensor(kp_y, dtype=torch.long)
@@ -501,4 +501,128 @@ def random_tumor_set(n_kp, n_elem, thresh):
             i += 1
             if i > n_elem:
                 break
+    return data_list
+
+
+def sift_tumor_set(n_kp, n_elem):
+    tumor_directory = 'kaggle_3m/'
+    i = 0
+    data_list = []
+    sift = cv2.xfeatures2d.SIFT_create(n_kp)
+    for patient in listdir(tumor_directory):
+        for image_file in listdir(tumor_directory + patient):
+            if 'mask' in image_file:
+                continue
+            img = np.array(
+                Image.open(
+                    tumor_directory + patient + '/' + image_file
+                )
+            )
+            mask = image_file.replace('.tif', '_mask.tif')
+            msk = np.array(
+                Image.open(
+                    tumor_directory + patient + '/' + mask
+                )
+            )
+            img_arr = np.array(img)
+            msk_arr = np.array(msk)
+            kp_values = []
+            kp_y = []
+            kp, des = sift.detectAndCompute(img, None)
+            if len(kp) < 100:
+                continue
+            kp_sampled = random.choices(kp, k=100)
+            points2f = cv2.KeyPoint_convert(kp_sampled)
+            edges = keypoint_function.maxDistances3(points2f)
+            for keypoint in points2f:
+                kp_values.append(
+                    img_arr[int(keypoint[0]), int(keypoint[1])]
+                )
+                if msk_arr[int(keypoint[0]), int(keypoint[1])] > 0:
+                    kp_y.append(1)
+                else:
+                    kp_y.append(0)
+            key_values = torch.tensor(kp_values, dtype=torch.float32).view(len(kp_values), 3)
+            kp_pos = torch.tensor(points2f)
+            y = torch.tensor(kp_y, dtype=torch.long)
+            data = Data(
+                x=key_values,
+                edge_index=edges,
+                pos=points2f,
+                y=y,
+            )
+            data_list.append(data)
+            i += 1
+            if i == n_elem:
+                break
+        return data_list
+
+
+def knn_tumor_set(n_kp, n_elem):
+    tumor_directory = 'kaggle_3m/'
+    i = 0
+    data_list = []
+
+    for patient in listdir(tumor_directory):
+        for image_file in listdir(tumor_directory + patient):
+            if 'mask' in image_file:
+                continue
+            img = np.array(
+                Image.open(
+                    tumor_directory + patient + '/' + image_file
+                )
+            )
+            mask = image_file.replace('.tif', '_mask.tif')
+            msk = np.array(
+                Image.open(
+                    tumor_directory + patient + '/' + mask
+                )
+            )
+            img_arr = np.array(img)
+            msk_arr = np.array(msk)
+            scan_segments = segmentation.slic(img_arr, compactness=1, n_segments=2*n_kp)
+            g = graph.rag_mean_color(img, scan_segments)
+            edges = []
+            for start in g.adj._atlas:
+                if start > 399:
+                    break
+                for stop in list(g.adj._atlas[start].keys()):
+                    if stop > 399:
+                        continue
+                    edges.append([start, stop])
+            kp_value = []
+            kp_pos = []
+            y = []
+            regions = regionprops(scan_segments, intensity_image=rgb2gray(img))
+            for props in regions:
+                cy, cx = props.weighted_centroid
+                if (isnan(cy)) or (isnan(cx)):
+                    cy, cx = props.centroid
+                kp_pos.append([cy, cx])
+                kp_value.append(img_arr[int(round(cy)), int(round(cx))])
+                mask_value = msk_arr[int(round(cy)), int(round(cx))]
+                if mask_value > 0:
+                    y.append(1)
+                else:
+                    y.append(0)
+                if len(y) == 400:
+                    break
+            # if len(y) < 400:
+            #     continue
+            keypoint_pos = torch.tensor(kp_pos)
+            keypoint_val = torch.tensor(kp_value, dtype=torch.float32)#.view(400, 1)
+            kp_edges = torch.tensor(edges).view(2, len(edges))
+            y = torch.tensor(y, dtype=torch.long)
+            data = Data(
+                x=keypoint_val,
+                edge_index=kp_edges,
+                pos=keypoint_pos,
+                y=y
+            )
+            data_list.append(data)
+            i += 1
+            if i == n_elem:
+                break
+        if i == n_elem:
+            break
     return data_list

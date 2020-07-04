@@ -5,7 +5,7 @@ from torch_geometric.data import DataLoader
 import numpy as np
 import torch.nn as nn
 
-from models.datasets import random_tumor_set
+from models.datasets import random_tumor_set, sift_tumor_set, knn_tumor_set
 from models.nets import GUNET
 from mlflow import log_param, log_metric, log_artifact, start_run
 
@@ -28,9 +28,9 @@ if __name__ == '__main__':
     hidden_channels = [100, 150, 200]
     pooling_ratios = [0.5, 0.5]
 
-    dataset = random_tumor_set(100, 10, 15)
-    train_loader = DataLoader(dataset[:8], batch_size=2, shuffle=True)
-    test_loader = DataLoader(dataset[8:], batch_size=2, shuffle=True)
+    dataset = sift_tumor_set(100, 200)
+    train_loader = DataLoader(dataset[:2], batch_size=2, shuffle=True)
+    test_loader = DataLoader(dataset[1:], batch_size=1, shuffle=True)
     lr = 1e-3
     model = GUNET(
         in_ch=3,
