@@ -152,7 +152,7 @@ def distanceIn2D(p1, p2):
     return math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2))
 
 
-def maxDistances3(point_array):
+def maxDistances3old(point_array):
     result = np.empty([len(point_array), len(point_array)])
     result_list = []
     for i in range(0, len(point_array)):

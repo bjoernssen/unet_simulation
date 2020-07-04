@@ -457,3 +457,48 @@ def create_knn_sim_set(n_kp, n_elem):
         )
         data_list.append(data)
     return data_list
+
+
+def random_tumor_set(n_kp, n_elem, thresh):
+    tumor_directory = 'kaggle_3m/'
+    i = 0
+    data_list = []
+
+    for patient in listdir(tumor_directory):
+        for image_file in listdir(tumor_directory + patient):
+            if 'mask' in image_file:
+                continue
+            img = np.array(
+                Image.open(
+                    tumor_directory + patient + '/' + image_file
+                )
+            )
+            mask = image_file.replace('.tif', '_mask.tif')
+            msk = np.array(
+                Image.open(
+                    tumor_directory + patient + '/' + mask
+                )
+            )
+            img_arr = np.array(img)
+            msk_arr = np.array(msk)
+
+            keypoint_pos, keypoint_val, y = keypoint_function.random_keypoints(
+                msk_arr,
+                color_image=img_arr,
+                threshold=thresh,
+                n_kp=n_kp
+            )
+            edges = keypoint_function.maxDistances3(keypoint_pos)
+            # kp_edges = torch.tensor(edges).view(2, len(edges))
+
+            data = Data(
+                x=keypoint_val,
+                edge_index=edges,
+                pos=keypoint_pos,
+                y=y
+            )
+            data_list.append(data)
+            i += 1
+            if i > n_elem:
+                break
+    return data_list
