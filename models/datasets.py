@@ -146,6 +146,7 @@ def create_binary_sim_set(n_kp, thresh, n_elem):
         data_list.append(data)
     return data_list
 
+
 def create_simulation_graph_set(n_kp, thresh, n_elem):
     input_images, target_masks = simulation.generate_random_data(192, 192, count=n_elem)
     input_images_rgb = [x.astype(np.uint8) for x in input_images]
@@ -390,17 +391,19 @@ def create_sift_sim_set(n_kp, n_elem):
             kp_values.append(
                 gray[int(keypoint[0]), int(keypoint[1])]
             )
-            for channel in range(6):
-                if msk[channel, int(keypoint[0]), int(keypoint[1])] == 1:
-                    kp_y.append(channel+1)
-                    break
-                elif channel == 5:
-                    kp_y.append(0)
+            if gray[int(keypoint[0]), int(keypoint[1])] > 0:
+                kp_y.append(1)
+            else:
+                kp_y.append(0)
+        key_values = torch.tensor(kp_values, dtype=torch.float32).view(25,1)
+        kp_pos = torch.tensor(points2f)
+        kp_edges = torch.tensor(edges).view(2, len(edges))
+        y = torch.tensor(kp_y, dtype=torch.long)
         data = Data(
-            x=kp_values,
-            edge_index=edges,
+            x=key_values,
+            edge_index=kp_edges,
             pos=points2f,
-            y=kp_y,
+            y=y,
         )
         data_list.append(data)
     return data_list

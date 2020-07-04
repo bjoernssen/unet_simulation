@@ -37,23 +37,23 @@ if __name__ == '__main__':
 
     rand_bin_train = create_binary_sim_set(n_kp=n_kp, thresh=10, n_elem=train_n)
     rand_bin_test = create_binary_sim_set(n_kp=n_kp, thresh=10, n_elem=test_n)
-
-    rand_bin_train_loader = DataLoader(rand_bin_train, batch_size=2, shuffle=True)
-    rand_bin_test_loader = DataLoader(rand_bin_test, batch_size=2, shuffle=True)
-
-    # sift_train = create_sift_sim_set(800, train_n)
-    # sift_test = create_sift_sim_set(800, test_n)
     #
-    # sift_train_loader = DataLoader(sift_train, batch_size=10, shuffle=True)
-    # sift_test_loader = DataLoader(sift_test, batch_size=10, shuffle=True)
+    # rand_bin_train_loader = DataLoader(rand_bin_train, batch_size=2, shuffle=True)
+    # rand_bin_test_loader = DataLoader(rand_bin_test, batch_size=2, shuffle=True)
+
+    sift_train = create_sift_sim_set(800, train_n)
+    sift_test = create_sift_sim_set(800, test_n)
+
+    sift_train_loader = DataLoader(sift_train, batch_size=10, shuffle=True)
+    sift_test_loader = DataLoader(sift_test, batch_size=10, shuffle=True)
 
     lr = 1e-3
     """Generate models from parameters"""
     for deep in depths:
         for hidden in hidden_channels:
             model = GUNET(
-                in_ch=3,
-                hid_ch=400,
+                in_ch=1,
+                hid_ch=250,
                 depth=deep,
                 out_ch=2,
                 pool_ratios=pooling_ratios
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                     running_train_los = []
                     start_time = time.time()
 
-                    for data in rand_bin_train_loader:
+                    for data in sift_train_loader:
                         data = data.to(device)
                         model.train()
                         optimizer.zero_grad()
@@ -84,7 +84,7 @@ if __name__ == '__main__':
                     else:
                         running_val_los = []
                         with torch.no_grad():
-                            for data in rand_bin_test_loader:
+                            for data in sift_test_loader:
                                 model.eval()
                                 data = data.to(device)
                                 pred = model(data).max(1)[1]
