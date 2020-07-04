@@ -28,9 +28,9 @@ if __name__ == '__main__':
     hidden_channels = [100, 150, 200]
     pooling_ratios = [0.5, 0.5]
 
-    dataset = sift_tumor_set(100, 200)
-    train_loader = DataLoader(dataset[:2], batch_size=2, shuffle=True)
-    test_loader = DataLoader(dataset[1:], batch_size=1, shuffle=True)
+    dataset = sift_tumor_set(300, 300)
+    train_loader = DataLoader(dataset[:250], batch_size=2, shuffle=True)
+    test_loader = DataLoader(dataset[250:], batch_size=1, shuffle=True)
     lr = 1e-3
     model = GUNET(
         in_ch=3,

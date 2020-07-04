@@ -16,7 +16,7 @@ import numpy as np
 import cv2
 from torch_geometric.data import Data, DataLoader
 from PIL import Image
-from math import isnan
+from math import isnan, floor
 import cv2
 
 from utils.keypoint_function import random_keypoints
@@ -529,9 +529,9 @@ def sift_tumor_set(n_kp, n_elem):
             kp_values = []
             kp_y = []
             kp, des = sift.detectAndCompute(img, None)
-            if len(kp) < 100:
+            if len(kp) < n_kp/2:
                 continue
-            kp_sampled = random.choices(kp, k=100)
+            kp_sampled = random.choices(kp, k=floor(n_kp/2))
             points2f = cv2.KeyPoint_convert(kp_sampled)
             edges = keypoint_function.maxDistances3(points2f)
             for keypoint in points2f:
@@ -555,7 +555,9 @@ def sift_tumor_set(n_kp, n_elem):
             i += 1
             if i == n_elem:
                 break
-        return data_list
+        if i == n_elem:
+            break
+    return data_list
 
 
 def knn_tumor_set(n_kp, n_elem):
