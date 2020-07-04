@@ -16,7 +16,7 @@ if __name__ == '__main__':
     epochs = 30
     loss = nn.NLLLoss()
     tumor_directory = 'kaggle3m/'
-    train_n = 2
+    train_n = 10
     test_n = 2
     n_kp = 200
     threshold = 15
@@ -35,14 +35,14 @@ if __name__ == '__main__':
     # rand_train_loader = DataLoader(rand_train, batch_size=10, shuffle=True)
     # rand_test_loader = DataLoader(rand_test, batch_size=10, shuffle=True)
 
-    rand_bin_train = create_binary_sim_set(n_kp=n_kp, thresh=10, n_elem=train_n)
-    rand_bin_test = create_binary_sim_set(n_kp=n_kp, thresh=10, n_elem=test_n)
+    # rand_bin_train = create_binary_sim_set(n_kp=n_kp, thresh=10, n_elem=train_n)
+    # rand_bin_test = create_binary_sim_set(n_kp=n_kp, thresh=10, n_elem=test_n)
     #
     # rand_bin_train_loader = DataLoader(rand_bin_train, batch_size=2, shuffle=True)
     # rand_bin_test_loader = DataLoader(rand_bin_test, batch_size=2, shuffle=True)
 
-    sift_train = create_knn_sim_set(1500, train_n)
-    sift_test = create_knn_sim_set(1500, test_n)
+    sift_train = create_knn_sim_set(500, train_n)
+    sift_test = create_knn_sim_set(500, test_n)
 
     sift_train_loader = DataLoader(sift_train, batch_size=2, shuffle=True)
     sift_test_loader = DataLoader(sift_test, batch_size=2, shuffle=True)
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         for hidden in hidden_channels:
             model = GUNET(
                 in_ch=1,
-                hid_ch=2760,
+                hid_ch=800,
                 depth=deep,
                 out_ch=2,
                 pool_ratios=pooling_ratios

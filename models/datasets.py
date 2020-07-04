@@ -420,10 +420,10 @@ def create_knn_sim_set(n_kp, n_elem):
         gray_mask = rgb2gray(mask)
         edges = []
         for start in g.adj._atlas:
-            if start > 1379:
+            if start > 399:
                 break
             for stop in list(g.adj._atlas[start].keys()):
-                if stop > 1379:
+                if stop > 399:
                     continue
                 edges.append([start, stop])
         kp_value = []
@@ -441,12 +441,12 @@ def create_knn_sim_set(n_kp, n_elem):
                 y.append(1)
             else:
                 y.append(0)
-            if len(y) == 1380:
+            if len(y) == 400:
                 break
-        if len(y) < 1380:
+        if len(y) < 400:
             continue
         keypoint_pos = torch.tensor(kp_pos)
-        keypoint_val = torch.tensor(kp_value, dtype=torch.float32).view(1380, 1)
+        keypoint_val = torch.tensor(kp_value, dtype=torch.float32).view(400, 1)
         kp_edges = torch.tensor(edges).view(2, len(edges))
         y = torch.tensor(y, dtype=torch.long)
         data = Data(
