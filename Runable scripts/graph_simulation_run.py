@@ -41,8 +41,8 @@ if __name__ == '__main__':
     # rand_bin_train_loader = DataLoader(rand_bin_train, batch_size=2, shuffle=True)
     # rand_bin_test_loader = DataLoader(rand_bin_test, batch_size=2, shuffle=True)
 
-    sift_train = create_sift_sim_set(500, train_n)
-    sift_test = create_sift_sim_set(500, test_n)
+    sift_train = create_knn_sim_set(500, train_n)
+    sift_test = create_knn_sim_set(500, test_n)
 
     sift_train_loader = DataLoader(sift_train, batch_size=2, shuffle=True)
     sift_test_loader = DataLoader(sift_test, batch_size=2, shuffle=True)
@@ -95,12 +95,12 @@ if __name__ == '__main__':
                     epoch_train_acc = np.mean(running_train_los)
                     print('Train loss: {}'.format(epoch_train_acc))
                     train_loss.append(epoch_train_acc)
-                    log_metric('train_loss', epoch_train_acc)
+                    log_metric('train_accuracy', epoch_train_acc)
 
                     epoch_val_acc = np.mean(running_val_los)
                     print('test loss: {}'.format(epoch_val_acc))
                     val_loss.append(epoch_val_acc)
-                    log_metric('test_loss', epoch_val_acc)
+                    log_metric('test_accuracy', epoch_val_acc)
 
                     time_elapsed = time.time() - start_time
                     print('{:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))

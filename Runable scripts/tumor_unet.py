@@ -101,12 +101,12 @@ if __name__ == '__main__':
             epoch_train_loss = np.mean(running_train_loss)
             print('Train loss: {}'.format(epoch_train_loss))
             train_loss.append(epoch_train_loss)
-            log_metric('train_loss', epoch_train_loss)
+            log_metric('train_accuracy', epoch_train_loss)
 
             epoch_val_loss = np.mean(running_val_loss)
             print('Validation loss: {}'.format(epoch_val_loss))
             val_loss.append(epoch_val_loss)
-            log_metric('test_loss', epoch_val_loss)
+            log_metric('test_accuracy', epoch_val_loss)
 
             time_elapsed = time.time() - start_time
             print('{:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))

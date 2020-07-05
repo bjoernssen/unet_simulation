@@ -428,7 +428,7 @@ def create_knn_sim_set(n_kp, n_elem):
                 cy, cx = props.centroid
             kp_pos.append([cy, cx])
             kp_value.append(rgb2gray(img)[int(round(cy)), int(round(cx))])
-            mask_value = gray_mask[int(round(cy)), int(round(cx))]
+            mask_value = rgb2gray(img)[int(round(cy)), int(round(cx))]
             if mask_value > 0:
                 y.append(1)
             else:
