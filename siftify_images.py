@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     sift = cv.xfeatures2d.SIFT_create(500)
     i = 0
-    image = Image.open('Tumor_MRI/Yes/Image/TCGA_CS_4941_19960909_12.tif')
+    image = Image.open('datasets/Tumor_MRI/Yes/Image/TCGA_CS_4941_19960909_12.tif')
     img = np.array(image)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     gray_mask = cv.cvtColor(target_masks_rgb[0], cv.COLOR_BGR2GRAY)
@@ -47,18 +47,19 @@ if __name__ == '__main__':
     #     plt.plot(cx, cy, 'ro')
     # plt.show()
 
-    img_segments2 = 1 + segmentation.slic(gray, compactness=0.1, n_segments=800)
-    superpixels2 = color.label2rgb(img_segments2, gray, kind='avg')
-    plt.imshow(img)
-    regions2 = regionprops(img_segments2, intensity_image=rgb2gray(img))
-    for props in regions2:
-        cy, cx = props.centroid
-        plt.plot(cx, cy, 'r.')
-    plt.show()
-    plt.imshow(superpixels2)
-    plt.show()
+    # img_segments2 = 1 + segmentation.slic(gray, compactness=0.1, n_segments=800)
+    # superpixels2 = color.label2rgb(img_segments2, gray, kind='avg')
+    # plt.imshow(img)
+    # regions2 = regionprops(img_segments2, intensity_image=rgb2gray(img))
+    # for props in regions2:
+    #     cy, cx = props.centroid
+    #     plt.plot(cx, cy, 'r.')
+    # plt.show()
+    # plt.imshow(superpixels2)
+    # plt.show()
     kp_pos, kp_val, y = keypoint_function.random_sim_kp(
         gray,
+        msk=gray_mask,
         thresh=10,
         n_kp=500
     )
@@ -67,9 +68,17 @@ if __name__ == '__main__':
         plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'r.')
     plt.show()
 
-    img_kp = cv.drawKeypoints(gray, kp, img)
-    plt.imshow(img_kp)
+    plt.imshow(img)
+    for i in range(len(kp_pos)):
+        if y[i] == 1:
+            plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'r.')
+        elif y[i] == 0:
+            plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'b.')
     plt.show()
-    i = i + 1
+    #
+    # img_kp = cv.drawKeypoints(gray, kp, img)
+    # plt.imshow(img_kp)
+    # plt.show()
+    # i = i + 1
 
 

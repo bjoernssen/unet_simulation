@@ -51,15 +51,20 @@ def random_keypoints(gray_image, color_image=None, threshold=int, n_kp=int):
             rand_col = random.choice(np.where(gray_image == 255)[1])
             kp_pos.append([rand_row, rand_col])
             kp_value.append(color_image[rand_row, rand_col])
-            kp_y.append(1)
+            if gray_image[rand_row, rand_col] > 0:
+                kp_y.append(1)
+            else:
+                kp_y.append(0)
             keypoint += 1
     while keypoint < n_kp:
         rand_row = random.choice(np.where(gray_image == 0)[0])
         rand_col = random.choice(np.where(gray_image == 0)[1])
         kp_pos.append([rand_row, rand_col])
         kp_value.append(color_image[rand_row, rand_col])
-
-        kp_y.append(0)
+        if gray_image[rand_row, rand_col] > 0:
+            kp_y.append(1)
+        else:
+            kp_y.append(0)
         keypoint += 1
     keypoint_pos = torch.tensor(kp_pos)
     keypoint_val = torch.tensor(kp_value, dtype=torch.float32)

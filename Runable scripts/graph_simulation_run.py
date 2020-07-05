@@ -41,8 +41,8 @@ if __name__ == '__main__':
     # rand_bin_train_loader = DataLoader(rand_bin_train, batch_size=2, shuffle=True)
     # rand_bin_test_loader = DataLoader(rand_bin_test, batch_size=2, shuffle=True)
 
-    sift_train = create_knn_sim_set(500, train_n)
-    sift_test = create_knn_sim_set(500, test_n)
+    sift_train = create_sift_sim_set(500, train_n)
+    sift_test = create_sift_sim_set(500, test_n)
 
     sift_train_loader = DataLoader(sift_train, batch_size=2, shuffle=True)
     sift_test_loader = DataLoader(sift_test, batch_size=2, shuffle=True)
