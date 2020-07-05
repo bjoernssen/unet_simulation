@@ -578,10 +578,10 @@ def knn_tumor_set(n_kp, n_elem):
             g = graph.rag_mean_color(img, scan_segments)
             edges = []
             for start in g.adj._atlas:
-                if start > 399:
+                if start > 199:
                     break
                 for stop in list(g.adj._atlas[start].keys()):
-                    if stop > 399:
+                    if stop > 199:
                         continue
                     edges.append([start, stop])
             kp_value = []
@@ -599,9 +599,9 @@ def knn_tumor_set(n_kp, n_elem):
                     y.append(1)
                 else:
                     y.append(0)
-                if len(y) == 400:
+                if len(y) == 200:
                     break
-            if len(y) < 400:
+            if len(y) < 200:
                 continue
             keypoint_pos = torch.tensor(kp_pos)
             keypoint_val = torch.tensor(kp_value, dtype=torch.float32)#.view(400, 1)
