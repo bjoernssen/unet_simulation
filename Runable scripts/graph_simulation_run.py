@@ -5,7 +5,7 @@ from torch_geometric.data import DataLoader
 import numpy as np
 import torch.nn as nn
 
-from models.datasets import create_knn_sim_set, create_simulation_graph_set, create_sift_sim_set, create_binary_sim_set
+from models.datasets import knn_tumor_set, create_knn_sim_set, create_simulation_graph_set, create_sift_sim_set, create_binary_sim_set
 from models.nets import GUNET
 from mlflow import log_param, log_metric, log_artifact, start_run
 
@@ -29,8 +29,8 @@ if __name__ == '__main__':
     pooling_ratios = [0.5, 0.5]
 
     """Building the data set"""
-    # rand_train = create_simulation_graph_set(n_kp=n_kp, thresh=15, n_elem=train_n)
-    # rand_test = create_simulation_graph_set(n_kp=n_kp, thresh=15, n_elem=test_n)
+    rand_train = knn_tumor_set(n_kp=n_kp, n_elem=train_n)
+    rand_test = knn_tumor_set(n_kp=n_kp, n_elem=test_n)
     #
     # rand_train_loader = DataLoader(rand_train, batch_size=10, shuffle=True)
     # rand_test_loader = DataLoader(rand_test, batch_size=10, shuffle=True)
@@ -41,11 +41,11 @@ if __name__ == '__main__':
     # rand_bin_train_loader = DataLoader(rand_bin_train, batch_size=2, shuffle=True)
     # rand_bin_test_loader = DataLoader(rand_bin_test, batch_size=2, shuffle=True)
 
-    sift_train = create_knn_sim_set(500, train_n)
-    sift_test = create_knn_sim_set(500, test_n)
+    # sift_train = create_knn_sim_set(500, train_n)
+    # sift_test = create_knn_sim_set(500, test_n)
 
-    sift_train_loader = DataLoader(sift_train, batch_size=2, shuffle=True)
-    sift_test_loader = DataLoader(sift_test, batch_size=2, shuffle=True)
+    sift_train_loader = DataLoader(rand_train, batch_size=2, shuffle=True)
+    sift_test_loader = DataLoader(rand_test, batch_size=2, shuffle=True)
 
     lr = 1e-3
     """Generate models from parameters"""

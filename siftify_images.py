@@ -17,23 +17,26 @@ def rgb2gray(rgb):
 
 
 if __name__ == '__main__':
-    input_images, target_masks = simulation.generate_random_data(192, 192, count=1)
-    input_images_rgb = [x.astype(np.uint8) for x in input_images]
-    target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
+    # input_images, target_masks = simulation.generate_random_data(192, 192, count=1)
+    # input_images_rgb = [x.astype(np.uint8) for x in input_images]
+    # target_masks_rgb = [helper.masks_to_colorimg(x) for x in target_masks]
     # helper.plot_side_by_side([input_images_rgb, target_masks_rgb])
     # plt.show()
 
-    sift = cv.xfeatures2d.SIFT_create(500)
-    i = 0
+
     image = Image.open('datasets/Tumor_MRI/Yes/Image/TCGA_CS_4941_19960909_12.tif')
     img = np.array(image)
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    gray_mask = cv.cvtColor(target_masks_rgb[0], cv.COLOR_BGR2GRAY)
-    channel = np.unique(gray_mask)
+    sift = cv.xfeatures2d.SIFT_create(100)
     kp, des = sift.detectAndCompute(img, None)
-    points2f = cv.KeyPoint_convert(kp)
-    img = np.ascontiguousarray(img, dtype=np.uint8)
-    plt.imshow(img)
+    # img = np.array(image)
+    # gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    # gray_mask = cv.cvtColor(target_masks_rgb[0], cv.COLOR_BGR2GRAY)
+    # channel = np.unique(gray_mask)
+    # kp, des = sift.detectAndCompute(img, None)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    img_kp = cv.drawKeypoints(gray, kp, img)
+    # img = np.ascontiguousarray(img, dtype=np.uint8)
+    plt.imshow(img_kp)
     plt.show()
     # filename = 'sift_keypoints' + str(i) + '.jpg'
 
@@ -57,24 +60,24 @@ if __name__ == '__main__':
     # plt.show()
     # plt.imshow(superpixels2)
     # plt.show()
-    kp_pos, kp_val, y = keypoint_function.random_sim_kp(
-        gray,
-        msk=gray_mask,
-        thresh=10,
-        n_kp=500
-    )
-    plt.imshow(img)
-    for i in range(len(kp_pos)):
-        plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'r.')
-    plt.show()
-
-    plt.imshow(img)
-    for i in range(len(kp_pos)):
-        if y[i] == 1:
-            plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'r.')
-        elif y[i] == 0:
-            plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'b.')
-    plt.show()
+    # kp_pos, kp_val, y = keypoint_function.random_sim_kp(
+    #     gray,
+    #     msk=gray_mask,
+    #     thresh=10,
+    #     n_kp=500
+    # )
+    # plt.imshow(img)
+    # for i in range(len(kp_pos)):
+    #     plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'r.')
+    # plt.show()
+    #
+    # plt.imshow(img)
+    # for i in range(len(kp_pos)):
+    #     if y[i] == 1:
+    #         plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'r.')
+    #     elif y[i] == 0:
+    #         plt.plot(int(kp_pos[i][1]), int(kp_pos[i][0]), 'b.')
+    # plt.show()
     #
     # img_kp = cv.drawKeypoints(gray, kp, img)
     # plt.imshow(img_kp)

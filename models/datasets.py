@@ -601,8 +601,8 @@ def knn_tumor_set(n_kp, n_elem):
                     y.append(0)
                 if len(y) == 400:
                     break
-            # if len(y) < 400:
-            #     continue
+            if len(y) < 400:
+                continue
             keypoint_pos = torch.tensor(kp_pos)
             keypoint_val = torch.tensor(kp_value, dtype=torch.float32)#.view(400, 1)
             kp_edges = torch.tensor(edges).view(2, len(edges))
