@@ -71,7 +71,7 @@ plyfile==0.7.2
 prometheus-client==0.8.0
 prometheus-flask-exporter==0.13.0
 prompt-toolkit==3.0.5
-protobuf==3.12.1
+protobuf==3.18.3
 ptyprocess==0.6.0
 py @ file:///tmp/build/80754af9/py_1593446248552/work
 Pygments==2.6.1
