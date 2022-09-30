@@ -34,7 +34,7 @@ isodate==0.6.0
 itsdangerous==1.1.0
 jedi @ file:///tmp/build/80754af9/jedi_1592841891421/work
 Jinja2==2.11.2
-joblib==0.14.1
+joblib==1.2.0
 jsonschema==3.2.0
 jupyter==1.0.0
 jupyter-client==6.1.3
